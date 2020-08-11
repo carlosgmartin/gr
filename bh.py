@@ -91,9 +91,9 @@ inner_horizon = 1/2 * (m - np.sqrt(m**2 - 4 * q**2))
 outer_horizon = 1/2 * (m + np.sqrt(m**2 - 4 * q**2))
 photon_sphere = 1/4 * (3 * m + np.sqrt(9 * m**2 - 32 * q**2))
 
-# innermost circular orbit (for uncharged particles)
-# https://journals-aps-org.proxy.library.cmu.edu/prd/pdf/10.1103/PhysRevD.83.024021
-# isco = np.roots([-8*q**4, 9*q**2*m, -3*m**2, m][::-1])[0]
+# innermost stable circular orbit (for uncharged particles)
+# https://arxiv.org/abs/1012.5411
+isco = np.roots([-8*q**4, 9*q**2*m, -3*m**2, m][::-1])[0]
 
 ds2 = 0 # 0 for lightlike, 1 for spacelike, -1 for timelike
 
@@ -163,6 +163,7 @@ a = np.linspace(0, 2 * np.pi, 100)
 axes.plot(a, np.full(len(a), inner_horizon), linewidth=.5, color='grey', label='inner horizon')
 axes.plot(a, np.full(len(a), outer_horizon), linewidth=.5, color='grey', label='outer horizon')
 axes.plot(a, np.full(len(a), photon_sphere), linewidth=.5, color='grey', label='photon sphere')
+axes.plot(a, np.full(len(a), isco), linewidth=.5, color='grey', label='isco')
 
 axes.plot(θ, r, linewidth=.5, color='red')
 
