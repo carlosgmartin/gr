@@ -1,12 +1,13 @@
 import numpy as np
-from sympy import symbols, sin, pprint, Array
+from sympy import symbols, sin, pprint, Array, sqrt
 from sympy.diffgeom import (
     Manifold,
     Patch,
     CoordSystem,
     metric_to_Christoffel_2nd,
     TensorProduct as TP,
-    twoform_to_matrix
+    twoform_to_matrix,
+    Differential,
 )
 from sympy.utilities.lambdify import lambdify
 from timeit import default_timer
@@ -14,22 +15,58 @@ from itertools import islice
 import matplotlib.pyplot as plt
 from pdb import set_trace
 
-manifold = Manifold(None, 4)
-patch = Patch(None, manifold)
-m, q = symbols('m, q')
+manifold = Manifold('mymanifold', 4)
+patch = Patch('mypatch', manifold)
+m, q = symbols('m q')
 
 if True:
-    coord = CoordSystem(None, patch, ['u', 'r', 'θ', 'φ'])
+    u, r, θ, φ = symbols('u r θ φ')
+    coord = CoordSystem('mycoords', patch, (u, r, θ, φ))
     u, r, θ, φ = coord.coord_functions()
     du, dr, dθ, dφ = coord.base_oneforms()
     metric = -(1 - m/r + (q/r)**2) * TP(du, du) + TP(du, dr) + TP(dr, du) + r**2 * (TP(dθ, dθ) + sin(θ)**2 * TP(dφ, dφ))
-else:
+    pprint(metric_to_Christoffel_2nd(metric))
+if False:
     # The Kerr spacetime: A brief introduction by Matt Visser (Equation 42)
     # https://arxiv.org/pdf/0706.0622.pdf#page=11
-    coord = CoordSystem(None, patch, ['t', 'r', 'θ', 'φ'])
+    t, r, θ, φ = symbols('t r θ φ')
+    coord = CoordSystem('mycoords', patch, (t, r, θ, φ))
     t, r, θ, φ = coord.coord_functions()
     dt, dr, dθ, dφ = coord.base_oneforms()
     metric = -TP(dt, dt) + TP(dr, dr) + r**2 * (TP(dθ, dθ) + sin(θ)**2 * TP(dφ, dφ)) + (m/r - (q/r)**2) * TP(dt + dr, dt + dr)
+if False:
+    # Reissner-Nordstrom metric in Kerr-Schild form
+    # https://en.wikipedia.org/wiki/Reissner%E2%80%93Nordstr%C3%B6m_metric#Alternative_formulation_of_metric
+    # https://en.wikipedia.org/wiki/Kerr%E2%80%93Schild_perturbations
+    t, x, y, z = symbols('t x y z')
+    coord = CoordSystem('mycoords', patch, (t, x, y, z))
+    del t, x, y, z
+    t, x, y, z = coord.coord_functions()
+    dt, dx, dy, dz = coord.base_oneforms()
+    minkow = TP(dt, dt) - TP(dx, dx) - TP(dy, dy) - TP(dz, dz)
+    r = sqrt(x**2 + y**2 + z**2)
+    f = m/r - (q/r)**2 # scalar
+    k = dt - (x * dx + y * dy + z * dz) / r # null vector
+    metric = minkow + f * TP(k, k)
+    pprint(metric_to_Christoffel_2nd(metric))
+    exit()
+if False:
+    manifold = Manifold('mymanifold', 3)
+    patch = Patch('mypatch', manifold)
+    m, q = symbols('m q')
+    t, x, y = symbols('t x y')
+    coord = CoordSystem('mycoords', patch, (t, x, y))
+    del t, x, y
+    t, x, y = coord.coord_functions()
+    dt, dx, dy = coord.base_oneforms()
+    minkow = TP(dt, dt) - TP(dx, dx) - TP(dy, dy)
+    r = sqrt(x**2 + y**2)
+    f = m/r - (q/r)**2 # scalar
+    k = dt - (x * dx + y * dy) / r # null vector
+    metric = minkow + f * TP(k, k)
+    pprint(metric_to_Christoffel_2nd(metric))
+    exit()
+
 
 metric_array = Array(twoform_to_matrix(metric))
 christoffel_array = metric_to_Christoffel_2nd(metric)
